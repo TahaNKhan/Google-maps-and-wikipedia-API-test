@@ -28,14 +28,14 @@ placeModel.prototype.getLatLng = function(callback){
 }
 
 
-placeModel.prototype.addMarkerAndInfoWindow = function (maps1){
+placeModel.prototype.addMarkerAndInfoWindow = function (map){
 	var self = this;
 
 	this.getLatLng(function(data, name, address, content){
 
 		self.marker = new google.maps.Marker({
 			position: data,
-			map : maps1,
+			map : map,
 			title : name
 		});
 
@@ -43,19 +43,20 @@ placeModel.prototype.addMarkerAndInfoWindow = function (maps1){
 			content: '<h3>' + name + '</h3>' + '<p>' + content + '</p>'
 		});
 		// place marker
-		self.marker.setMap(maps1);
+		self.marker.setMap(map);
 
 		// set listener to marker for infowindow
 		self.marker.addListener('click', function() {
-			self.infowindow.open(maps1, self.marker);
+			self.infowindow.open(map, self.marker);
 			self.marker.setAnimation(google.maps.Animation.BOUNCE);
 			setTimeout(function(){ self.marker.setAnimation(null); }, 760);
 		});
 	});
 }
 
-placeModel.prototype.removeMarker = function(map){
-	this.marker.setMap(null);
+placeModel.prototype.removeMarker = function(x){
+	console.log(x.setMap);
+	x.marker.setMap(null);
 
 }
 
@@ -275,7 +276,7 @@ function initMap() {
 	map.setMapTypeId('styled_map');
 
 	// data
-	var data = [{
+	const data = [{
 		"name" : "Union Purdue Hotel",
 		"address" : "101 N Grant St, West Lafayette, IN",
 		"content" : "Hotel with no refrigerator or microwave."
@@ -320,9 +321,8 @@ function initMap() {
 		}
 
 		this.removeLocation = function(index){
-
-			// self.markers()[index].removeMarker(map);
-			console.log(self.markers()[index].removeMarker(map))
+			// console.log(index + ' ' + self.markers()[index].marker);
+			self.markers()[index].marker.setMap(null);
 			self.markers.splice(index,1);
 		}
 
@@ -341,12 +341,16 @@ function initMap() {
 			map.setCenter(element.marker.getPosition());
 			// make the marker bounce
 			element.marker.setAnimation(google.maps.Animation.BOUNCE);
+			// stop the bouce after once.
 			setTimeout(function(){ element.marker.setAnimation(null); }, 760);
+			// open the infowindow
 			element.infowindow.open(map, element.marker);
 		});
 		x++;
 	});
 
+
+	////////// Test for removal
 	placelist.removeLocation(2);
 	console.log(placelist.markers());
 
