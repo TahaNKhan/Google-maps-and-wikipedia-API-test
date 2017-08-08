@@ -4,8 +4,7 @@ function placeModel(name, address, content){
 	this.name = name;
 	this.address = address;
 	this.content = content;
-	this.marker;
-	this.infowindow;
+
 };
 
 placeModel.prototype.getLatLng = function(callback){
@@ -18,6 +17,7 @@ placeModel.prototype.getLatLng = function(callback){
 
 		var result = {lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng};
 		if(callback){
+			self.lnglat = result;
 			callback(result, self.name, self.address, self.content);
 		}
 		
@@ -47,6 +47,7 @@ placeModel.prototype.addMarkerAndInfoWindow = function (map){
 
 		// set listener to marker for infowindow
 		self.marker.addListener('click', function() {
+			// close all other infowindows
 			self.infowindow.open(map, self.marker);
 			self.marker.setAnimation(google.maps.Animation.BOUNCE);
 			setTimeout(function(){ self.marker.setAnimation(null); }, 760);
@@ -54,22 +55,10 @@ placeModel.prototype.addMarkerAndInfoWindow = function (map){
 	});
 }
 
-placeModel.prototype.removeMarker = function(x){
-	console.log(x.setMap);
-	x.marker.setMap(null);
-
-}
-
-placeModel.prototype.addMarker = function (maps1) {
-	this.marker.setMap(maps1);
-}
-
 
 ////////////////////// End Model //////////////////////
-// var placeListVM = function(){};
+
 // Initialize the map
-
-
 function initMap() {
 	// map styles
 	var styledMapType = new google.maps.StyledMapType([
@@ -253,7 +242,7 @@ function initMap() {
 	{name: 'Styled Map'});
 
 	// initialize map
-	map = new google.maps.Map(document.getElementById('map'), {
+	var map = new google.maps.Map(document.getElementById('map'), {
 		zoom: 17,
 		center: {lat: 40.4239, lng: -86.9091},
 		mapTypeControl: false,
@@ -320,11 +309,6 @@ function initMap() {
 			self.markers()[i].addMarkerAndInfoWindow(map);
 		}
 
-		this.removeLocation = function(index){
-			// console.log(index + ' ' + self.markers()[index].marker);
-			self.markers()[index].marker.setMap(null);
-			self.markers.splice(index,1);
-		}
 
 
 
@@ -343,6 +327,10 @@ function initMap() {
 			element.marker.setAnimation(google.maps.Animation.BOUNCE);
 			// stop the bouce after once.
 			setTimeout(function(){ element.marker.setAnimation(null); }, 760);
+			// close all other infowindows
+			placelist.markers().forEach(function(ele){
+				ele.infowindow.close();
+			});
 			// open the infowindow
 			element.infowindow.open(map, element.marker);
 		});
@@ -350,9 +338,6 @@ function initMap() {
 	});
 
 
-	////////// Test for removal
-	placelist.removeLocation(2);
-	console.log(placelist.markers());
 
 }
 
