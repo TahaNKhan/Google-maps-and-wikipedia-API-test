@@ -4,50 +4,71 @@ function placeModel(name, address, content){
 	this.name = name;
 	this.address = address;
 	this.content = content;
-
+	this.marker;
+	this.infowindow;
 };
 
 placeModel.prototype.getLatLng = function(callback){
-	address = this.address.split(' ').join('+');
-	var result;
+	var address = this.address.split(' ').join('+');
+	var self = this;
+
 	$.ajax({
 		url:'https://maps.googleapis.com/maps/api/geocode/json?address=' + this.address + '&key=AIzaSyBj85s9nxUYTRO_MfJ-cn8IGXcAof0tfpc'
-	}).done(function(data){
+	}).done(function(data,text,jq){
 
-		result = {lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng};
-		if(callback)
-			callback(result);
+		var result = {lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng};
+		if(callback){
+			callback(result, self.name, self.address, self.content);
+		}
 		
+	}).fail(function(){
+		$('body').html('<div class="container"><h1>Google Map API Failed</h1></div>');
 	});
 	return;
 }
 
 
-placeModel.prototype.addMarkerAndInfoWindow = function (maps1, callback){
-	this.getLatLng(function(data){
-		var marker = new google.maps.Marker({
+placeModel.prototype.addMarkerAndInfoWindow = function (maps1){
+	var self = this;
+
+	this.getLatLng(function(data, name, address, content){
+
+		self.marker = new google.maps.Marker({
 			position: data,
 			map : maps1,
-			title : this.title
+			title : name
 		});
-		var infowindow = new google.maps.InfoWindow({
-			content: '<h3>' + this.title + '</h3>' + '<p>' + this.content + '</p>'
-		});
-			// place marker
-			marker.setMap(maps1);
 
-			// set listener to marker for infowindow
-			marker.addListener('click', function() {
-				infowindow.open(maps1, marker);
-			});
+		self.infowindow = new google.maps.InfoWindow({
+			content: '<h3>' + name + '</h3>' + '<p>' + content + '</p>'
 		});
+		// place marker
+		self.marker.setMap(maps1);
+
+		// set listener to marker for infowindow
+		self.marker.addListener('click', function() {
+			self.infowindow.open(maps1, self.marker);
+			self.marker.setAnimation(google.maps.Animation.BOUNCE);
+			setTimeout(function(){ self.marker.setAnimation(null); }, 760);
+		});
+	});
+}
+
+placeModel.prototype.removeMarker = function(map){
+	this.marker.setMap(null);
+
+}
+
+placeModel.prototype.addMarker = function (maps1) {
+	this.marker.setMap(maps1);
 }
 
 
-
 ////////////////////// End Model //////////////////////
-
+// var placeListVM = function(){};
 // Initialize the map
+
+
 function initMap() {
 	// map styles
 	var styledMapType = new google.maps.StyledMapType([
@@ -231,7 +252,7 @@ function initMap() {
 	{name: 'Styled Map'});
 
 	// initialize map
-	var map = new google.maps.Map(document.getElementById('map'), {
+	map = new google.maps.Map(document.getElementById('map'), {
 		zoom: 17,
 		center: {lat: 40.4239, lng: -86.9091},
 		mapTypeControl: false,
@@ -240,36 +261,94 @@ function initMap() {
 			'styled_map']
 		}
 	});
-	google.maps.event.addListener(map, "rightclick", function(event) {
-		var lat = event.latLng.lat();
-		var lng = event.latLng.lng();
-		console.log("lat: " + lat + ", lng: " + lng);
-	});
+
+
+	// Gets the lat and lng on a right click:
+	// google.maps.event.addListener(map, "rightclick", function(event) {
+	// 	var lat = event.latLng.lat();
+	// 	var lng = event.latLng.lng();
+	// 	console.log("lat: " + lat + ", lng: " + lng);
+	// });
+
+	// apply styles
 	map.mapTypes.set('styled_map', styledMapType);
 	map.setMapTypeId('styled_map');
 
-	// data in json
-	var data = '{	"places" : [{		"name" : "Union Purdue Hotel",		"address" : "101 N Grant St, West Lafayette, IN",		"content" : "Hotel with no refrigerator or microwave."	},	{		"name" : "Blue Nile Restaurant",		"address" : " 117 Northwestern Ave # 2, West Lafayette, IN",		"content" : "Great Mediteranean Food"	},	{		"name" : "Panda Express",		"address" : "138 Northwestern Ave, West Lafayette, IN",		"content" : "Worst Chinese Food."	},	{		"name" : "West Lafayette Public Library",		"address" : "208 W Columbia St, West Lafayette, IN",		"content" : "They books, lots and lots of books."	},	{		"name" : "Subway",		"address" : "135 S Chauncey Ave #2-F, West Lafayette, IN",		"content" : "Questionable sandwiches at amazingly low prices."	}]}';
-	data = JSON.parse(data);
-	var placeListVM = function(){
-		this.markers = new ko.observableArray([]);
-		data.places.forEach(function (element){
+	// data
+	var data = [{
+		"name" : "Union Purdue Hotel",
+		"address" : "101 N Grant St, West Lafayette, IN",
+		"content" : "Hotel with no refrigerator or microwave."
+	},
+	{
+		"name" : "Blue Nile Restaurant",
+		"address" : " 117 Northwestern Ave # 2, West Lafayette, IN",
+		"content" : "Great Mediteranean Food"
+	},
+	{
+		"name" : "Panda Express",
+		"address" : "138 Northwestern Ave, West Lafayette, IN",
+		"content" : "Worst Chinese Food."
+	},
+	{
+		"name" : "West Lafayette Public Library",
+		"address" : "208 W Columbia St, West Lafayette, IN",
+		"content" : "They got books, lots and lots of books."
+	},
+	{
+		"name" : "Subway",
+		"address" : "135 S Chauncey Ave #2-F, West Lafayette, IN",
+		"content" : "Questionable sandwiches at amazingly low prices."
+	}];
+
+	placeListVM = function(){
+		var self = this;
+		self.markers = new ko.observableArray([]);
+		
+
+
+		// add markers to map
+
+		data.forEach(function (element){
 			var x = new placeModel(element.name, element.address, element.content);
-			this.markers().push(x);
+			self.markers().push(x);
+
 		});
-	// markers().arrayForEach(function(el){
-	// 	el.addMarkerAndInfoWindow(map);
-	// });
-	for(var i = 0; i < markers().length; i++){
-		markers()[i].addMarkerAndInfoWindow(map);
-	}
 
-};
+		for(var i = 0; i < self.markers().length; i++){
+			self.markers()[i].addMarkerAndInfoWindow(map);
+		}
+
+		this.removeLocation = function(index){
+
+			// self.markers()[index].removeMarker(map);
+			console.log(self.markers()[index].removeMarker(map))
+			self.markers.splice(index,1);
+		}
 
 
-placeListVM();
 
+	};
 
+	var placelist = new placeListVM()
+	ko.applyBindings(placelist);	
+
+	// add event listeners
+	var x = 0;
+	placelist.markers().forEach(function(element){
+		$('#loc' + x).click(function(){
+			// center on the marker
+			map.setCenter(element.marker.getPosition());
+			// make the marker bounce
+			element.marker.setAnimation(google.maps.Animation.BOUNCE);
+			setTimeout(function(){ element.marker.setAnimation(null); }, 760);
+			element.infowindow.open(map, element.marker);
+		});
+		x++;
+	});
+
+	placelist.removeLocation(2);
+	console.log(placelist.markers());
 
 }
 
