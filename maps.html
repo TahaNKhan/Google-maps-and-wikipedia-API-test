@@ -1,0 +1,65 @@
+
+<!-- This is the corresponding "starter code" for 05_Interpreting Geocoding Responses in Udacity
+  and Google's Maps API Course, Lesson 2 -->
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <title>Neighborhood Maps</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyBj85s9nxUYTRO_MfJ-cn8IGXcAof0tfpc&callback=initMap">
+  </script>
+
+  <!-- jQuery -->
+  <script src="js/jquery-3.2.1.min.js"></script>
+  <!-- Knockout -->
+  <script src="js/ko.js"></script>
+  <!-- Main Script -->
+  <script src="js/main.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="js/bootstrap.min.js"></script>
+  <!-- Navbar -->
+  <script src="js/navbar.js"></script>
+
+  <script src="models/place-model.js"></script>
+  <!-- viewmodel -->
+  <script src="js/viewmodel.js"></script>
+
+
+
+  <link rel="stylesheet" href="./css/styles.css">
+
+  <link rel="stylesheet" href="./css/bootstrap.min.css">
+</head>
+<body>
+
+  <div id="map"><h1>Error loading map</h1></div>
+
+  <div class="container overlap">
+    <header>
+      <nav id="mySidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <input id="search" class="form-control" placeholder="Location Search">
+        <a href="#">Test</a>
+
+      </nav>
+
+      <span id="hamburger" onclick="openNav()">&#9776;</span>
+      
+    </header>
+
+  </div>
+
+
+
+
+  <script>
+
+
+  </script>
+  <!--TODO: Insert your API Key in the below call to load the API.-->
+
+</body>
+</html>
