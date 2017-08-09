@@ -39,11 +39,10 @@
     <header>
       <nav id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <input id="search" class="form-control" placeholder="Location Search">
-        <div id='list' data-bind="foreach: markers">
+        <input data-bind="value: search, valueUpdate: 'keyup'" id="search" class="form-control"  placeholder="Location Search">
+        <div id='list' data-bind="foreach: searchResults">
           <a data-bind="text: name, attr: { id: 'loc' + $index() }"></a>
         </div>
-
       </nav>
 
       <span id="hamburger" onclick="openNav()">&#9776;</span>
