@@ -75,7 +75,13 @@ placeModel.prototype.hideMarker = function(){
 	this.marker.setMap(null);
 }
 
+placeModel.prototype.getPosition = function(){
+	return this.marker.getPosition();
+}
 
+placeModel.prototype.getMarker = function(){
+	return this.marker;
+}
 
 
 ////////////////////// End Model //////////////////////
@@ -274,17 +280,9 @@ function initMap() {
 		}
 	});
 
-
-	// Gets the lat and lng on a right click:
-	// google.maps.event.addListener(map, "rightclick", function(event) {
-	// 	var lat = event.latLng.lat();
-	// 	var lng = event.latLng.lng();
-	// 	console.log("lat: " + lat + ", lng: " + lng);
-	// });
-
-	// apply styles
-	map.mapTypes.set('styled_map', styledMapType);
-	map.setMapTypeId('styled_map');
+		// apply styles
+		map.mapTypes.set('styled_map', styledMapType);
+		map.setMapTypeId('styled_map');
 
 	// data
 	const data = [{
@@ -320,6 +318,9 @@ function initMap() {
 
 	var placeListVM = function(){
 		var self = this;
+
+		
+
 		self.markers = new ko.observableArray([]);
 		self.search = ko.observable('');
 
@@ -328,41 +329,47 @@ function initMap() {
 			var q = self.search();
 			if(q != ''){
 				return self.markers().filter(function(i){
-					return i.name.toLowerCase().indexOf(q) >= 0;
+					return i.name.toLowerCase().indexOf(q.toLowerCase()) >= 0;
 				});
 			}else{
 				return self.markers();	
 			}
 		});
+		// everytime the search happens, update the map
 		self.search.subscribe(function(newValue){
-			if(newValue == ''){
-				addEventListenersOnSideBar();
-				return;
-			}	
-			var i = 0;
-			self.markers().forEach(function(element){
-				if($("#loc"+i).length > 0){
-					if($("#loc"+i).html() == element.name){
-						element.showMarker(map);
-						$("#loc"+i).click(function(){
-						// center on the marker
-						map.setCenter(element.marker.getPosition());
-						// make the marker bounce
-						element.marker.setAnimation(google.maps.Animation.BOUNCE);
-						// stop the bouce after once.
-						setTimeout(function(){ element.marker.setAnimation(null); }, 760);
-						// close all other infowindows
+
+			var results = self.searchResults();
+
+			// center on first result
+			if(results.length > 0){
+				map.setCenter(results[0].marker.getPosition());
+			}
+
+			// hide unneeded markers
+			self.markers().forEach(function(mark){
+				if(!results.includes(mark))
+					mark.hideMarker();
+				else{
+					mark.showMarker(map);
+					placelist.markers().forEach(function(ele){
+						ele.infowindow.close();
+					});
+					// hide infowindows
+					$('#' + mark.id).click(function(){
+						map.setCenter(mark.getPosition());
+						mark.getMarker().setAnimation(google.maps.Animation.BOUNCE);
+						setTimeout(function(){ mark.getMarker().setAnimation(null); }, 760);
+						// close all infowindows
 						placelist.markers().forEach(function(ele){
 							ele.infowindow.close();
+						});
+						// open the infowindow thats relevant
+						mark.infowindow.open(map, mark.marker);
 					});
 
-					element.infowindow.open(map, element.marker);
-				});
-					}else {
-						element.hideMarker();
-					}
 				}
 			});
+
 
 		});
 
@@ -381,7 +388,7 @@ function initMap() {
 
 
 
-	};
+	}	
 
 
 
