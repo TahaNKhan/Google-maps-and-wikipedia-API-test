@@ -79,7 +79,7 @@ placeModel.prototype.getContent = function(name, callback){
 		var pagekeys = Object.keys(pages)[0];
 		// console.log(pages[pagekeys].extract);
 		self.content = pages[pagekeys].extract;
-		self.infowindow.setContent('<h3>' + name + '</h3>' + '<p>' + self.content + '</p>');
+		self.infowindow.setContent('<h3>' + name + '</h3>' + '<p>' + self.content + '</p>' + '<p> -From wikipedia</p>');
 	});
 };
 
