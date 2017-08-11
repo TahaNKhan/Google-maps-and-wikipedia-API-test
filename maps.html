@@ -5,7 +5,7 @@
   <html>
   <head>
     <title>Neighborhood Map</title>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
 
 
@@ -39,7 +39,7 @@
           <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
           <input data-bind="value: search, valueUpdate: 'keyup'" id="search" class="form-control"  placeholder="Location Search">
           <div id='list' data-bind="foreach: searchResults">
-            <a data-bind="text: name, attr: { id: id }"></a>
+            <a data-bind="text: name, attr: { id: id }, click: $parent.addEventListener"></a>
           </div>
         </nav>
 
@@ -53,7 +53,7 @@
 
 
     <script async defer
-    src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyBj85s9nxUYTRO_MfJ-cn8IGXcAof0tfpc&callback=initialize">
+    src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyBj85s9nxUYTRO_MfJ-cn8IGXcAof0tfpc&callback=initialize" onerror='gMapsFail()'>
   </script>
   <!--TODO: Insert your API Key in the below call to load the API.-->
 

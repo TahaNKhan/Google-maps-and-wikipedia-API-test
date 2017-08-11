@@ -1,3 +1,6 @@
+function gMapsFail(){
+	$('body').html('<div class="container"><h1>Something went wrong trying to reach Google Maps</h1></div>');
+}
 ///////////////// Model ////////////////////////////
 
 function placeModel(name, address, content, id){
@@ -77,9 +80,10 @@ placeModel.prototype.getContent = function(name, callback){
 	}).done(function(data){
 		var pages = data.query.pages;
 		var pagekeys = Object.keys(pages)[0];
-		// console.log(pages[pagekeys].extract);
 		self.content = pages[pagekeys].extract;
-		self.infowindow.setContent('<h3>' + name + '</h3>' + '<p>' + self.content + '</p>' + '<p> -From wikipedia</p>');
+		self.infowindow.setContent('<h3>' + name + '</h3>' + '<p>' + self.content.split('.')[0] + '</p>' + '<p> -From wikipedia</p>');
+	}).fail(function(){
+		alert('Couldn\'t load wikipedia API');
 	});
 };
 
@@ -343,41 +347,16 @@ function initialize() {
 				return self.markers();	
 			}
 		});
-		// everytime the search happens, update the map
-		self.search.subscribe(function(newValue){
 
-			var results = self.searchResults();
+		self.addEventListener = function(data, event){
+			self.markers().forEach(function(ele){
+				ele.infowindow.close();
+			});	
+			data.infowindow.open(map, data.marker);
 
-			// center on first result
-			if(results.length > 0){
-				map.setCenter(results[0].marker.getPosition());
-			}
+		};
 
-			// hide unneeded markers
-			self.markers().forEach(function(mark){
-				if(!results.includes(mark))
-					mark.hideMarker();
-				else{
-					mark.showMarker(map);
-					placelist.markers().forEach(function(ele){
-						ele.infowindow.close();
-					});
-					// hide infowindows
-					$('#' + mark.id).click(function(){
-						map.setCenter(mark.getPosition());
-						mark.getMarker().setAnimation(google.maps.Animation.BOUNCE);
-						setTimeout(function(){ mark.getMarker().setAnimation(null); }, 760);
-						// close all infowindows
-						placelist.markers().forEach(function(ele){
-							ele.infowindow.close();
-						});
-						// open the infowindow thats relevant
-						mark.infowindow.open(map, mark.marker);
-					});
 
-				}
-			});
-		});
 
 		// add data
 
@@ -392,32 +371,32 @@ function initialize() {
 		}
 
 
-		self.addInitialEventListenersOnSideBar = function(){
+		// self.addInitialEventListenersOnSideBar = function(){
 
-			var x = 0;
-			self.markers().forEach(function(element){
-				// $('#loc' + x).html() == element.name;
-				// element.showMarker(map);
-				$('#loc' + x).click(function(){
-					// center on the marker
-					map.setCenter(element.marker.getPosition());
-					// make the marker bounce
-					element.marker.setAnimation(google.maps.Animation.BOUNCE);
-					// stop the bouce after once.
-					setTimeout(function(){ element.marker.setAnimation(null); }, 760);
-					// close all other infowindows
-					self.markers().forEach(function(ele){
-						if(ele.infowindow)
-							ele.infowindow.close();
-					});
-					element.infowindow.open(map, element.marker);
+		// 	var x = 0;
+		// 	self.markers().forEach(function(element){
+		// 		// $('#loc' + x).html() == element.name;
+		// 		// element.showMarker(map);
+		// 		$('#loc' + x).click(function(){
+		// 			// center on the marker
+		// 			map.setCenter(element.marker.getPosition());
+		// 			// make the marker bounce
+		// 			element.marker.setAnimation(google.maps.Animation.BOUNCE);
+		// 			// stop the bouce after once.
+		// 			setTimeout(function(){ element.marker.setAnimation(null); }, 760);
+		// 			// close all other infowindows
+		// 			self.markers().forEach(function(ele){
+		// 				if(ele.infowindow)
+		// 					ele.infowindow.close();
+		// 			});
+		// 			element.infowindow.open(map, element.marker);
 
-				});
-				x++;
-			});
+		// 		});
+		// 		x++;
+		// 	});
 
 
-		};
+		// };
 
 
 
@@ -428,7 +407,7 @@ function initialize() {
 
 	var placelist = new placeListVM();
 	ko.applyBindings(placelist);	
-	placelist.addInitialEventListenersOnSideBar();
+	// placelist.addInitialEventListenersOnSideBar();
 
 
 
