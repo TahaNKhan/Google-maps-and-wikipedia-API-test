@@ -339,11 +339,23 @@ function initialize() {
 		// Get the search from
 		self.searchResults = ko.computed(function(){
 			var q = self.search();
+			self.markers().forEach(function(ele){
+				ele.infowindow.close();
+			});
 			if(q !== ''){
 				return self.markers().filter(function(i){
-					return i.name.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+					if(i.name.toLowerCase().indexOf(q.toLowerCase()) >= 0){
+						i.showMarker(map);
+						return i.name.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+					}else{
+						i.hideMarker();
+						return i.name.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+					}
 				});
 			}else{
+				self.markers().forEach(function(i){
+					i.showMarker(map);
+				});
 				return self.markers();	
 			}
 		});
