@@ -335,7 +335,7 @@ function initialize() {
 		// Get the search from
 		self.searchResults = ko.computed(function(){
 			var q = self.search();
-			if(q != ''){
+			if(q !== ''){
 				return self.markers().filter(function(i){
 					return i.name.toLowerCase().indexOf(q.toLowerCase()) >= 0;
 				});
