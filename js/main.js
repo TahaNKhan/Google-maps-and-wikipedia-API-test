@@ -6,7 +6,7 @@ function placeModel(name, address, content, id){
 	this.content = content;
 	this.id = id;
 
-};
+}
 
 placeModel.prototype.getLatLng = function(callback){
 	// replace the spaces in address with +s
@@ -16,7 +16,7 @@ placeModel.prototype.getLatLng = function(callback){
 
 	// use google's geocode api to get lat long
 	$.ajax({
-		url:'https://maps.googleapis.com/maps/api/geocode/json?address=' + this.address + '&key=AIzaSyBj85s9nxUYTRO_MfJ-cn8IGXcAof0tfpc'
+		url:'https://maps.googleapis.com/maps/api/geocode/json?address=' + address + '&key=AIzaSyBj85s9nxUYTRO_MfJ-cn8IGXcAof0tfpc'
 	}).done(function(data,text,jq){
 		// get the result and use callback
 		var result = {lat: data.results[0].geometry.location.lat, lng: data.results[0].geometry.location.lng};
@@ -30,10 +30,10 @@ placeModel.prototype.getLatLng = function(callback){
 		$('body').html('<div class="container"><h1>Google Map API Failed</h1></div>');
 	});
 	return;
-}
+};
 
 
-placeModel.prototype.addMarkerAndInfoWindow = function (markers, map){
+placeModel.prototype.init = function (markers, map){
 	var self = this;
 
 	self.getLatLng(function(data, name, address, content){
@@ -51,6 +51,7 @@ placeModel.prototype.addMarkerAndInfoWindow = function (markers, map){
 		self.marker.setMap(map);
 		self.marker.setAnimation(google.maps.Animation.DROP);
 
+		self.getContent(self.name);
 
 		// set listener to marker for infowindow
 		self.marker.addListener('click', function() {
@@ -65,29 +66,44 @@ placeModel.prototype.addMarkerAndInfoWindow = function (markers, map){
 			setTimeout(function(){ self.marker.setAnimation(null); }, 760);
 		});
 	});
-}
+};
+
+// wikipedia api
+placeModel.prototype.getContent = function(name, callback){
+	var self = this;
+	var url = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&origin=*&exintro=&explaintext=&titles="+ name.split(' ').join('%20') +"&redirects";
+	$.ajax({
+		url: url
+	}).done(function(data){
+		var pages = data.query.pages;
+		var pagekeys = Object.keys(pages)[0];
+		// console.log(pages[pagekeys].extract);
+		self.content = pages[pagekeys].extract;
+		self.infowindow.setContent('<h3>' + name + '</h3>' + '<p>' + self.content + '</p>');
+	});
+};
 
 placeModel.prototype.showMarker = function(map){
 	this.marker.setMap(map);
-}
+};
 
 placeModel.prototype.hideMarker = function(){
 	this.marker.setMap(null);
-}
+};
 
 placeModel.prototype.getPosition = function(){
 	return this.marker.getPosition();
-}
+};
 
 placeModel.prototype.getMarker = function(){
 	return this.marker;
-}
+};
 
 
 ////////////////////// End Model //////////////////////
 
 // Initialize the map
-function initMap() {
+function initialize() {
 	// map styles
 	var styledMapType = new google.maps.StyledMapType([
 	{
@@ -95,14 +111,6 @@ function initMap() {
 		"stylers": [
 		{
 			"color": "#242f3e"
-		}
-		]
-	},
-	{
-		"elementType": "labels.text.fill",
-		"stylers": [
-		{
-			"color": "#746855"
 		}
 		]
 	},
@@ -271,7 +279,7 @@ function initMap() {
 
 	// initialize map
 	var map = new google.maps.Map(document.getElementById('map'), {
-		zoom: 17,
+		zoom: 5,
 		center: {lat: 40.4239, lng: -86.9091},
 		mapTypeControl: false,
 		mapTypeControlOptions: {
@@ -280,51 +288,51 @@ function initMap() {
 		}
 	});
 
-		// apply styles
-		map.mapTypes.set('styled_map', styledMapType);
-		map.setMapTypeId('styled_map');
+	// apply styles
+	map.mapTypes.set('styled_map', styledMapType);
+	map.setMapTypeId('styled_map');
 
 	// data
-	const data = [{
-		"name" : "Union Purdue Hotel",
-		"address" : "101 N Grant St, West Lafayette, IN",
-		"content" : "Hotel with no refrigerator or microwave.",
+	var data = [{
+		"name" : "Chicago",
+		"address" : "Chicago, IL",
+		"content" : "Great City",
 		"id" : "loc0"
 	},
 	{
-		"name" : "Blue Nile Restaurant",
-		"address" : " 117 Northwestern Ave # 2, West Lafayette, IN",
-		"content" : "Great Mediteranean Food",
+		"name" : "Atlanta",
+		"address" : "Atlanta, GA",
+		"content" : "Olympics happened here sometime ago",
 		"id" : "loc1"
 	},
 	{
-		"name" : "Panda Express",
-		"address" : "138 Northwestern Ave, West Lafayette, IN",
-		"content" : "Worst Chinese Food.",
+		"name" : "Indianapolis",
+		"address" : "Indianapolis, IN",
+		"content" : "Indy 500 happens here",
 		"id" : "loc2"
 	},
 	{
-		"name" : "West Lafayette Public Library",
-		"address" : "208 W Columbia St, West Lafayette, IN",
-		"content" : "They got books, lots and lots of books.",
+		"name" : "Detroit",
+		"address" : "Detroit, MI",
+		"content" : "'Murican car companies here",
 		"id" : "loc3"
 	},
 	{
-		"name" : "Subway",
-		"address" : "135 S Chauncey Ave #2-F, West Lafayette, IN",
-		"content" : "Questionable sandwiches at amazingly low prices.",
+		"name" : "New York City",
+		"address" : "New York City, NY",
+		"content" : "Meh City",
 		"id" : "loc4"
 	}];
 
+	// view model
 	var placeListVM = function(){
-		var self = this;
-
 		
-
+		var self = this;
+		// ko array for placemodels
 		self.markers = new ko.observableArray([]);
 		self.search = ko.observable('');
 
-
+		// Get the search from
 		self.searchResults = ko.computed(function(){
 			var q = self.search();
 			if(q != ''){
@@ -369,8 +377,6 @@ function initMap() {
 
 				}
 			});
-
-
 		});
 
 		// add data
@@ -382,48 +388,49 @@ function initMap() {
 		});
 
 		for(var i = 0; i < self.markers().length; i++){
-			self.markers()[i].addMarkerAndInfoWindow(this.markers,map);
+			self.markers()[i].init(this.markers,map);
 		}
 
 
+		self.addInitialEventListenersOnSideBar = function(){
 
-
-	}	
-
-
-
-	var placelist = new placeListVM()
-	ko.applyBindings(placelist);	
-
-	// add event listeners
-	function addEventListenersOnSideBar(){
-		var x = 0;
-		placelist.markers().forEach(function(element){
-			// $('#loc' + x).html() == element.name;
-			// element.showMarker(map);
-			$('#loc' + x).click(function(){
-				// center on the marker
-				map.setCenter(element.marker.getPosition());
-				// make the marker bounce
-				element.marker.setAnimation(google.maps.Animation.BOUNCE);
-				// stop the bouce after once.
-				setTimeout(function(){ element.marker.setAnimation(null); }, 760);
-				// close all other infowindows
-				placelist.markers().forEach(function(ele){
-					if(ele.infowindow)
-						ele.infowindow.close();
-				});
-
-				// open the infowindow
-				// if($('#loc' + x).html() == element.name){
+			var x = 0;
+			self.markers().forEach(function(element){
+				// $('#loc' + x).html() == element.name;
+				// element.showMarker(map);
+				$('#loc' + x).click(function(){
+					// center on the marker
+					map.setCenter(element.marker.getPosition());
+					// make the marker bounce
+					element.marker.setAnimation(google.maps.Animation.BOUNCE);
+					// stop the bouce after once.
+					setTimeout(function(){ element.marker.setAnimation(null); }, 760);
+					// close all other infowindows
+					self.markers().forEach(function(ele){
+						if(ele.infowindow)
+							ele.infowindow.close();
+					});
 					element.infowindow.open(map, element.marker);
-				// }
 
+				});
+				x++;
 			});
-			x++;
-		});
-	}
-	addEventListenersOnSideBar();
+
+
+		};
+
+
+
+
+	};
+
+
+
+	var placelist = new placeListVM();
+	ko.applyBindings(placelist);	
+	placelist.addInitialEventListenersOnSideBar();
+
+
 
 
 
