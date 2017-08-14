@@ -364,6 +364,10 @@ function initialize() {
 			self.markers().forEach(function(ele){
 				ele.infowindow.close();
 			});	
+			map.setCenter(data.marker.getPosition());
+			data.marker.setAnimation(google.maps.Animation.BOUNCE);
+			// stop the bouce after once.
+			setTimeout(function(){ data.marker.setAnimation(null); }, 760);
 			data.infowindow.open(map, data.marker);
 
 		};
