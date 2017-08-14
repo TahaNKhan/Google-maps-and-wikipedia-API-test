@@ -385,46 +385,13 @@ function initialize() {
 		for(var i = 0; i < self.markers().length; i++){
 			self.markers()[i].init(this.markers,map);
 		}
-
-
-		// self.addInitialEventListenersOnSideBar = function(){
-
-		// 	var x = 0;
-		// 	self.markers().forEach(function(element){
-		// 		// $('#loc' + x).html() == element.name;
-		// 		// element.showMarker(map);
-		// 		$('#loc' + x).click(function(){
-		// 			// center on the marker
-		// 			map.setCenter(element.marker.getPosition());
-		// 			// make the marker bounce
-		// 			element.marker.setAnimation(google.maps.Animation.BOUNCE);
-		// 			// stop the bouce after once.
-		// 			setTimeout(function(){ element.marker.setAnimation(null); }, 760);
-		// 			// close all other infowindows
-		// 			self.markers().forEach(function(ele){
-		// 				if(ele.infowindow)
-		// 					ele.infowindow.close();
-		// 			});
-		// 			element.infowindow.open(map, element.marker);
-
-		// 		});
-		// 		x++;
-		// 	});
-
-
-		// };
-
-
-
-
 	};
 
 
 
 	var placelist = new placeListVM();
 	ko.applyBindings(placelist);	
-	// placelist.addInitialEventListenersOnSideBar();
-
+	
 
 
 
